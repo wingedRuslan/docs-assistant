@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "docs-assistant"
+version = "0.1.0"
+description = ""
+authors = ["Ruslan Yermakov <ruslan.yermakov@personal.com>"]
+readme = "README.md"
+packages = [{include = "docs_assistant", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+langchain = "0.3.14"
+langchain-openai = "^0.3.7"
+langchain-community = "0.3.14"
+langchainhub = "0.1.21"
+requests = "^2.32.3"
+beautifulsoup4 = "^4.13.3"
+playwright = "^1.50.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+black = "^25.1.0"
+isort = "^6.0.1"
+mypy = "^1.15.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.13"
+disallow_untyped_defs = true
+check_untyped_defs = true

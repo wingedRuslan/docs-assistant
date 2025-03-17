@@ -1,0 +1,60 @@
+# Ignore legacy 
+legacy/
+
+.DS_Store
+
+# Ignore mypy artifacts
+.mypy_cache/
+
+# Ignore all notebooks by default
+notebooks/**/*.ipynb
+
+# But track specific example notebooks
+!notebooks/intro.ipynb
+
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Distribution
+dist/
+build/
+
+# Environment variables
+.env
