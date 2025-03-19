@@ -89,6 +89,7 @@ class BrowserCrawler:
         # Only keep links to the same domain and within our path scope
         filtered_links = []
         current_url = page.url
+        current_base_url = current_url.split('#')[0]  # Remove any fragment from current URL
         
         for link in links:
             parsed = urlparse(link)
@@ -100,15 +101,19 @@ class BrowserCrawler:
             # Check if the link is in the same path scope as our base_url
             if not link.startswith(self.base_url):
                 continue
-                
+            
+            # Get base link without fragment for visited check
+            base_link = link.split('#')[0]
+
             # Skip fragment identifiers on the same page
-            if link.startswith(current_url + '#'):
+            if base_link == current_base_url:
                 continue
-                
-            # Add link if we haven't visited or queued it
-            if link not in self.visited_urls and link not in self.queued_urls:
-                filtered_links.append(link)
-                self.queued_urls.add(link)
+
+            # Add link if we haven't visited or queued its base URL
+            if base_link not in self.visited_urls and base_link not in self.queued_urls:
+                filtered_links.append(base_link)
+                self.queued_urls.add(base_link)  
+            
         
         logger.info(f"Found {len(filtered_links)} new links on {page.url}")
         return filtered_links
@@ -263,4 +268,9 @@ def download_autogen_docs(output_dir="./data/autogen_docs/", version="0.2", max_
 
 
 if __name__ == "__main__":
-    download_autogen_docs()
+    # download_autogen_docs()
+
+    base_url = "https://pandas.pydata.org/docs/reference/index.html"
+    base_url = "https://pandas.pydata.org/docs/reference/"
+    
+    asyncio.run(crawl_docs(base_url, "./data/pandas_docs/", max_pages=100))
