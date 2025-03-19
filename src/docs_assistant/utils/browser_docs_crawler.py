@@ -9,6 +9,7 @@ like React, Vue, or Angular that require JavaScript to render content.
 """
 
 import os
+import argparse
 import asyncio
 import logging
 from urllib.parse import urlparse
@@ -241,7 +242,7 @@ class BrowserCrawler:
 
 async def crawl_docs(base_url, output_dir="./data/docs/", max_pages=100):
     """
-    Helper function to crawl documentation using a browser.
+    Helper function to crawl documentation using a BrowserCrawler.
     
     Args:
         base_url: Starting URL for the documentation
@@ -252,25 +253,43 @@ async def crawl_docs(base_url, output_dir="./data/docs/", max_pages=100):
     return await crawler.crawl()
 
 
-def download_autogen_docs(output_dir="./data/autogen_docs/", version="0.2", max_pages=100):
-    """
-    Download Autogen documentation using a browser.
-    
-    Args:
-        output_dir: Directory to save documentation files
-        version: Autogen version to download
-        max_pages: Maximum number of pages to download
-    """
-    base_url = f"https://microsoft.github.io/autogen/{version}/docs/"
-    
-    # We need to run the async function from a synchronous context
-    asyncio.run(crawl_docs(base_url, output_dir, max_pages))
-
-
 if __name__ == "__main__":
-    # download_autogen_docs()
 
-    base_url = "https://pandas.pydata.org/docs/reference/index.html"
-    base_url = "https://pandas.pydata.org/docs/reference/"
+    # Set up argument parser
+    parser = argparse.ArgumentParser(
+        description="Browser-based documentation crawler for downloading documentation sites"
+    )
     
-    asyncio.run(crawl_docs(base_url, "./data/pandas_docs/", max_pages=100))
+    # Add arguments
+    parser.add_argument(
+        "--url", "-u", 
+        required=True,
+        help="Base URL of the documentation to crawl"
+    )
+    
+    parser.add_argument(
+        "--output", "-o", 
+        default="./data/docs/",
+        help="Directory to save downloaded documentation (default: ./data/docs/)"
+    )
+    
+    parser.add_argument(
+        "--max-pages", "-m", 
+        type=int, 
+        default=100,
+        help="Maximum number of pages to download (default: 100)"
+    )
+        
+    # Parse arguments
+    args = parser.parse_args()
+    
+    # Run the crawler with provided arguments
+    print(f"Starting crawler for: {args.url}")
+    print(f"Saving to: {args.output}")
+    
+    asyncio.run(crawl_docs(
+        base_url=args.url,
+        output_dir=args.output,
+        max_pages=args.max_pages,
+        wait_time=args.wait_time
+    ))
