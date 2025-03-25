@@ -7,6 +7,7 @@ while preserving directory structure, with flexible extraction strategies.
 
 import os
 import re
+import argparse
 import logging
 import html2text
 from bs4 import BeautifulSoup
@@ -235,3 +236,63 @@ class HTMLContentExtractor:
             logger.error(f"Error processing {html_path}: {e}")
             return False
     
+    def process_directory(self):
+        """
+        Process all HTML files in the input directory and subdirectories.
+        
+        Returns:
+            tuple: (processed_count, error_count, openai_fallback_count)
+        """
+        processed = 0
+        errors = 0
+        
+        for html_path in self.input_dir.glob('**/*.html'):
+            success = self.process_file(html_path)
+            if success:
+                processed += 1
+            else:
+                errors += 1
+        
+        return processed, errors, self.openai_calls
+
+
+def run_extraction():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Extract content from HTML files')
+    parser.add_argument('--input-dir', default="data/autogen_docs/autogen/0.2/",
+                        help='Directory containing HTML files')
+    parser.add_argument('--output-dir', default="data_processed/autogen_docs/autogen/0.2/",
+                        help='Directory to save extracted text files')
+    parser.add_argument('--mode', choices=['rule_based', 'hybrid', 'llm_only'], 
+                        default='rule_based',
+                        help='Extraction mode: rule_based, hybrid, or llm_only')
+    parser.add_argument('--min-content-length', type=int, default=250,
+                        help='Minimum length for valid content extraction')
+    args = parser.parse_args()
+    
+    # Print configuration
+    logger.info(f"Running extraction with:")
+    logger.info(f"  Input directory: {args.input_dir}")
+    logger.info(f"  Output directory: {args.output_dir}")
+    logger.info(f"  Mode: {args.mode}")
+    
+    # Initialize and run the extractor
+    extractor = HTMLContentExtractor(
+        input_dir=args.input_dir,
+        output_dir=args.output_dir,
+        extraction_mode=args.mode,
+        min_content_length=args.min_content_length
+    )
+
+    processed, errors, openai_calls = extractor.process_directory()
+    
+    logger.info(f"\nExtraction complete!")
+    logger.info(f"Files processed: {processed}")
+    logger.info(f"Errors: {errors}")
+    if args.mode in ['hybrid', 'llm_only']:
+        logger.info(f"OpenAI API calls: {openai_calls}")
+
+
+if __name__ == "__main__":
+    run_extraction()
+
