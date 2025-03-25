@@ -1,8 +1,13 @@
+import os
 import re
 import logging
 import html2text
 from bs4 import BeautifulSoup
 from pathlib import Path
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -27,14 +32,17 @@ class HTMLContentExtractor:
             input_dir (str): Directory containing HTML files
             output_dir (str): Directory to save extracted text files
             extraction_mode (str): One of "rule_based", "hybrid", or "llm_only"
-            openai_api_key (str): OpenAI API key (can be None if set in env var)
-            openai_model (str): OpenAI model to use
             min_content_length (int): Minimum length for valid content extraction
         """
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
         self.extraction_mode = extraction_mode
         self.min_content_length = min_content_length
+        self.openai_calls = 0
+        
+        # Initialize OpenAI client if needed
+        if extraction_mode in [self.HYBRID, self.LLM_ONLY]:
+            self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         
         # Initialize HTML2Text converter
         self.h2t = html2text.HTML2Text()
@@ -105,4 +113,39 @@ class HTMLContentExtractor:
         
         return cleaned_text
     
+    def extract_content_openai(self, html_content):
+        """
+        Extract content from HTML using OpenAI LLM call.
+        
+        Args:
+            html_content (str): HTML content
+        
+        Returns:
+            str: Extracted text content
+        """
+        try:
+            
+            # Make OpenAI API call
+            completion = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "You are a helpful assistant to extract the main content from HTML file. "
+                                  "Extract only the valuable content - ignore navigation bars, headers, footers, "
+                                  "and other UI elements. Format the content in Markdown."
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Here is the HTML content. Please extract just the main content, "
+                                   f"formatted as Markdown:\n\n{html_content}"
+                    }
+                ]
+            )
+            self.openai_calls += 1
+            return completion.choices[0].message.content
+            
+        except Exception as e:
+            logger.error(f"OpenAI extraction failed: {e}")
+            return ""
     
