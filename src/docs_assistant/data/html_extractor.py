@@ -1,3 +1,10 @@
+"""
+HTML Content Extractor
+
+A module for extracting content from HTML files and saving as plain text
+while preserving directory structure, with flexible extraction strategies.
+"""
+
 import os
 import re
 import logging
@@ -148,4 +155,83 @@ class HTMLContentExtractor:
         except Exception as e:
             logger.error(f"OpenAI extraction failed: {e}")
             return ""
+    
+    def extract_content(self, html_content):
+        """
+        Extract content from HTML using the selected strategy.
+        
+        Args:
+            html_content (str): HTML content
+        
+        Returns:
+            str: Extracted text content
+        """
+        # LLM-only mode
+        if self.extraction_mode == self.LLM_ONLY:
+            return self.extract_content_openai(html_content)
+        
+        # Rule-based mode
+        if self.extraction_mode == self.RULE_BASED:
+            return self.extract_content_rule_based(html_content)
+        
+        # Hybrid mode
+        if self.extraction_mode == self.HYBRID:
+            # First try rule-based extraction
+            extracted_content = self.extract_content_rule_based(html_content)
+            
+            # Check if the rule-based extraction was successful
+            content_is_valid = (
+                extracted_content and 
+                len(extracted_content) >= self.min_content_length and
+                not extracted_content.isspace()
+            )
+            
+            # If rule-based extraction failed or is suspicious, try OpenAI fallback
+            if not content_is_valid:
+                logger.info("Rule-based extraction produced insufficient content. Trying OpenAI fallback...")
+                openai_content = self.extract_content_openai(html_content)
+                
+                if openai_content and len(openai_content) > len(extracted_content):
+                    logger.info("Using OpenAI extracted content (better quality)")
+                    return openai_content            
+            return extracted_content
+    
+    def process_file(self, html_path):
+        """
+        Process a single HTML file and save its content.
+        
+        Args:
+            html_path (Path): Path to the HTML file
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Determine output path
+            rel_path = html_path.relative_to(self.input_dir)
+            output_path = self.output_dir / rel_path.with_suffix('.txt')
+            
+            # Create output directory if it doesn't exist
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Read and process HTML
+            with open(html_path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            
+            extracted_content = self.extract_content(html_content)
+
+            if not extracted_content:
+                logger.info(f"Warning: No content extracted from {html_path}")
+                return False
+            
+            # Write output
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(extracted_content)
+            
+            logger.info(f"Processed: {html_path} -> {output_path}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error processing {html_path}: {e}")
+            return False
     
