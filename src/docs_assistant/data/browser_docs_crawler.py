@@ -291,5 +291,4 @@ if __name__ == "__main__":
         base_url=args.url,
         output_dir=args.output,
         max_pages=args.max_pages,
-        wait_time=args.wait_time
     ))
