@@ -1,21 +1,27 @@
-# Documentation Assistant
+# Docs Assistant: Chat With Your Documentation
 
-## Browser-Based Documentation Crawler
+**Turn Any Documentation into an Interactive AI Assistant**
 
-Uses a browser-based approach ([crawler](./src/docs_assistant/utils/browser_docs_crawler.py)) to download documentation sites, including modern Single Page Applications (SPAs) that traditional crawlers can't handle.
+Docs Assistant lets you transform static documentation into an intelligent, conversational interface. Every documentation deserves a chat interface. Give your users the power to chat with your documentation and get answers instantly. 
 
-* **SPA Support:** Properly renders JavaScript-heavy documentation sites by executing JavaScript in a real browser (e.g. autogen)
-* **Works with Traditional Sites:** Also handles classic HTML documentation efficiently (e.g. pandas)
-* **Navigation:** Navigates and downloads complete documentation structures
+Inspired by [Chat LangChain](https://chat.langchain.com/), this project builds on [chat-langchain](https://github.com/langchain-ai/chat-langchain) project.
 
-The crawler requires Playwright for browser automation:
+## Loading data
+Load documentation from any website using a combination of headless browser crawling and Docling processing:
+- Crawls the website using AsyncChromiumLoader to handle JavaScript-rendered content
+- Processes HTML into clean Markdown using [Docling](https://github.com/docling-project/docling), [Langchain loaders](https://python.langchain.com/docs/integrations/document_loaders/#webpages)
+- Returns content as LangChain Document objects
+
+```
+from docs_assistant.load import load_docs
+docs = load_docs("https://microsoft.github.io/autogen/0.2/docs/")
+```
+
+
+## Installation
 
 ```bash
-# Install the crawler dependencies
-pip install playwright
-# Install browser binaries (required)
-python -m playwright install
-# Run docs crawler
-python src/docs_assistant/utils/browser_docs_crawler.py -url https://microsoft.github.io/autogen/0.2/docs/ -output ./data/autogen_docs/
+poetry install
+playwright install
 ```
 
