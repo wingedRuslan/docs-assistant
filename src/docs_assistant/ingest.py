@@ -62,7 +62,7 @@ def ingest_docs():
 
     # Load docs
     base_url = "https://microsoft.github.io/autogen/0.2/docs/"
-    num_pages = 25
+    num_pages = None
     docs_from_documentation = load_docs(base_url, num_pages)
     logger.info(f"No. of loaded documents: {len(docs_from_documentation)}")
 
